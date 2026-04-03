@@ -1,0 +1,42 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand">FacturationApp</span>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="clients">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Clients
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="produits">
+                <span class="bi bi-box-seam" aria-hidden="true"></span> Produits
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="factures">
+                <span class="bi bi-receipt" aria-hidden="true"></span> Factures
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="parametres">
+                <span class="bi bi-gear-fill" aria-hidden="true"></span> Paramètres
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="dashboard">
+                <span class="bi bi-graph-up-arrow" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

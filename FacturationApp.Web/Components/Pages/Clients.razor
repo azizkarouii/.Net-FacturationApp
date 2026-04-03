@@ -1,0 +1,254 @@
+@page "/clients"
+@using System.ComponentModel.DataAnnotations
+@using FacturationApp.Data.Entities
+@using FacturationApp.Services.Contracts
+@inject IClientService ClientService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Clients</PageTitle>
+
+<div class="container-fluid py-4 app-page clients-page">
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+            <h1 class="page-title display-6 fw-bold mb-1">Clients</h1>
+            <p class="page-subtitle mb-0">Gestion des clients avec création, modification et désactivation.</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+                <label class="form-label mb-1">Recherche</label>
+                <input class="form-control" @bind="SearchTerm" @bind:event="oninput" placeholder="Nom, email, téléphone..." />
+            </div>
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="showInactive" @bind="ShowInactive" />
+                <label class="form-check-label" for="showInactive">Inactifs</label>
+            </div>
+            <button class="btn btn-outline-primary mt-4" @onclick="LoadAsync">Filtrer</button>
+            <button class="btn btn-primary mt-4" @onclick="NewClient">Nouveau client</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="alert alert-info">@Message</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-5">
+            <div class="card surface-card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3 pb-0">
+                    <h2 class="h5 mb-0">@(Form.Id == 0 ? "Créer un client" : "Modifier le client")</h2>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="Form" OnValidSubmit="SaveAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-3">
+                            <label class="form-label">Nom</label>
+                            <InputText class="form-control" @bind-Value="Form.Nom" />
+                            <ValidationMessage For="() => Form.Nom" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Adresse</label>
+                            <InputText class="form-control" @bind-Value="Form.Adresse" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Téléphone</label>
+                            <InputText class="form-control" @bind-Value="Form.Telephone" />
+                            <ValidationMessage For="() => Form.Telephone" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <InputText class="form-control" @bind-Value="Form.Email" />
+                            <ValidationMessage For="() => Form.Email" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Matricule fiscal</label>
+                            <InputText class="form-control" @bind-Value="Form.MatriculeFiscal" />
+                            <ValidationMessage For="() => Form.MatriculeFiscal" />
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <InputCheckbox class="form-check-input" @bind-Value="Form.EstActif" />
+                            <label class="form-check-label">Actif</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Enregistrer</button>
+                            <button type="button" class="btn btn-outline-secondary" @onclick="NewClient">Réinitialiser</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-7">
+            <div class="card surface-card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Liste des clients</h2>
+                    <span class="badge text-bg-light">@ClientItems.Count clients</span>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Contact</th>
+                                <th>Fiscal</th>
+                                <th>Statut</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ClientItems.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-body-secondary py-4">Aucun client trouvé.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var client in ClientItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">@client.Nom</div>
+                                            <div class="small text-body-secondary">@client.Adresse</div>
+                                        </td>
+                                        <td>
+                                            <div>@client.Telephone</div>
+                                            <div class="small text-body-secondary">@client.Email</div>
+                                        </td>
+                                        <td>@client.MatriculeFiscal</td>
+                                        <td>
+                                            @if (client.EstActif)
+                                            {
+                                                <span class="badge text-bg-success">Actif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge text-bg-secondary">Inactif</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" @onclick="() => EditClient(client)">Modifier</button>
+                                                <button class="btn btn-outline-danger" @onclick="() => DeactivateClient(client)">Désactiver</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Client> ClientItems { get; set; } = new();
+    private ClientFormModel Form { get; set; } = new();
+    private string? SearchTerm { get; set; }
+    private bool ShowInactive { get; set; } = true;
+    private string? Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        ClientItems = await ClientService.GetAllAsync(SearchTerm, ShowInactive);
+    }
+
+    private void NewClient()
+    {
+        Form = new ClientFormModel();
+        Message = null;
+    }
+
+    private void EditClient(Client client)
+    {
+        Form = new ClientFormModel
+        {
+            Id = client.Id,
+            Nom = client.Nom,
+            Adresse = client.Adresse,
+            Telephone = client.Telephone,
+            Email = client.Email,
+            MatriculeFiscal = client.MatriculeFiscal,
+            EstActif = client.EstActif
+        };
+
+        Message = null;
+    }
+
+    private async Task SaveAsync()
+    {
+        var entity = new Client
+        {
+            Id = Form.Id,
+            Nom = Form.Nom.Trim(),
+            Adresse = Form.Adresse,
+            Telephone = Form.Telephone,
+            Email = Form.Email,
+            MatriculeFiscal = Form.MatriculeFiscal,
+            EstActif = Form.EstActif
+        };
+
+        if (entity.Id == 0)
+        {
+            await ClientService.CreateAsync(entity);
+            Message = "Client créé avec succès.";
+        }
+        else
+        {
+            await ClientService.UpdateAsync(entity);
+            Message = "Client mis à jour avec succès.";
+        }
+
+        await LoadAsync();
+        NewClient();
+    }
+
+    private async Task DeactivateClient(Client client)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Désactiver {client.Nom} ?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await ClientService.DeleteAsync(client.Id);
+        Message = "Client désactivé.";
+        await LoadAsync();
+    }
+
+    private sealed class ClientFormModel
+    {
+        public int Id { get; set; }
+
+        [Required, MaxLength(100)]
+        public string Nom { get; set; } = string.Empty;
+
+        public string? Adresse { get; set; }
+
+        [MaxLength(20)]
+        public string? Telephone { get; set; }
+
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        public string? MatriculeFiscal { get; set; }
+
+        public bool EstActif { get; set; } = true;
+    }
+}
