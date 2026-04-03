@@ -1,3 +1,4 @@
+@page "/"
 @page "/dashboard"
 @implements IAsyncDisposable
 @using FacturationApp.Data.Entities
@@ -257,15 +258,23 @@
     private RevenueForecastDto Forecast { get; set; } = new();
     private bool IsLoading { get; set; }
     private bool PendingChartRender { get; set; }
+    private bool InitialLoadTriggered { get; set; }
     private IJSObjectReference? ChartModule { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadAsync();
+        IsLoading = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender && !InitialLoadTriggered)
+        {
+            InitialLoadTriggered = true;
+            await LoadAsync();
+            return;
+        }
+
         if (PendingChartRender)
         {
             PendingChartRender = false;
