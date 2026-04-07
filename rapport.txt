@@ -1,0 +1,889 @@
+\documentclass[12pt,a4paper]{report}
+
+% ── Encodage & langue ──────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% ── Mise en page ───────────────────────────────────────────────────
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.8cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% ── Typographie ────────────────────────────────────────────────────
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ── Couleurs & graphiques ──────────────────────────────────────────
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% ── Tableaux ───────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+
+% ── Code source ────────────────────────────────────────────────────
+\usepackage{listings}
+\usepackage{inconsolata}
+
+% ── Liens & PDF ────────────────────────────────────────────────────
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=BleuPrincipal,
+  urlcolor=BleuPrincipal,
+  citecolor=BleuPrincipal,
+  pdftitle={Rapport Technique -- Application de Facturation},
+  pdfauthor={Groupe 3 -- 4ème année Data Science},
+}
+
+% ── En-têtes & pieds de page ───────────────────────────────────────
+\usepackage{fancyhdr}
+\usepackage{emptypage}
+
+% ── Divers ─────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{fontawesome5}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{mdframed}
+\usepackage{amsmath}
+
+% ══════════════════════════════════════════════════════════════════
+%  PALETTE DE COULEURS
+% ══════════════════════════════════════════════════════════════════
+\definecolor{BleuPrincipal}{HTML}{185FA5}
+\definecolor{BleuFonce}{HTML}{0C447C}
+\definecolor{BleuClair}{HTML}{E6F1FB}
+\definecolor{VertSucces}{HTML}{3B6D11}
+\definecolor{VertClair}{HTML}{EAF3DE}
+\definecolor{OrangeAvertissement}{HTML}{BA7517}
+\definecolor{OrangeClair}{HTML}{FAEEDA}
+\definecolor{RougeErreur}{HTML}{A32D2D}
+\definecolor{RougeClair}{HTML}{FCEBEB}
+\definecolor{GrisFond}{HTML}{F5F5F3}
+\definecolor{GrisBordure}{HTML}{CCCCCC}
+\definecolor{GrisTexte}{HTML}{555555}
+\definecolor{CoralCreatif}{HTML}{993C1D}
+\definecolor{CoralClair}{HTML}{FAECE7}
+
+% ══════════════════════════════════════════════════════════════════
+%  STYLE DES TITRES
+% ══════════════════════════════════════════════════════════════════
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{BleuFonce}}
+  {\chaptertitlename\ \thechapter}{18pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{BleuPrincipal}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{BleuFonce}}
+  {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{GrisTexte}}
+  {\thesubsubsection}{1em}{}
+
+% ══════════════════════════════════════════════════════════════════
+%  EN-TÊTES / PIEDS DE PAGE
+% ══════════════════════════════════════════════════════════════════
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{}
+\fancyhead[R]{\small\color{GrisTexte}\leftmark}
+\fancyfoot[C]{\small\color{GrisTexte}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\color{GrisBordure}\hrule width\headwidth height\headrulewidth}
+
+% ══════════════════════════════════════════════════════════════════
+%  STYLE CODE
+% ══════════════════════════════════════════════════════════════════
+\lstdefinestyle{csharp}{
+  language=[Sharp]C,
+  backgroundcolor=\color{GrisFond},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{BleuPrincipal}\bfseries,
+  commentstyle=\color{VertSucces}\itshape,
+  stringstyle=\color{CoralCreatif},
+  numberstyle=\tiny\color{GrisTexte},
+  numbers=left,
+  numbersep=8pt,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{GrisBordure},
+  breaklines=true,
+  captionpos=b,
+  tabsize=4,
+  showstringspaces=false,
+  morekeywords={async,await,var,string,bool,decimal,int,DateTime,
+                DbContext,DbSet,ICollection,Task,List,IQueryable},
+}
+\lstset{style=csharp}
+
+% ══════════════════════════════════════════════════════════════════
+%  BOÎTES PERSONNALISÉES
+% ══════════════════════════════════════════════════════════════════
+\newtcolorbox{infobox}[1][]{
+  enhanced, breakable,
+  colback=BleuClair, colframe=BleuPrincipal,
+  fonttitle=\bfseries\color{BleuFonce},
+  title={#1}, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  arc=4pt, boxrule=0.5pt,
+}
+
+\newtcolorbox{successbox}[1][]{
+  enhanced, breakable,
+  colback=VertClair, colframe=VertSucces,
+  fonttitle=\bfseries\color{VertSucces},
+  title={#1}, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  arc=4pt, boxrule=0.5pt,
+}
+
+\newtcolorbox{creativebox}[1][]{
+  enhanced, breakable,
+  colback=CoralClair, colframe=CoralCreatif,
+  fonttitle=\bfseries\color{CoralCreatif},
+  title={#1}, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  arc=4pt, boxrule=0.5pt,
+}
+
+\newtcolorbox{warningbox}[1][]{
+  enhanced, breakable,
+  colback=OrangeClair, colframe=OrangeAvertissement,
+  fonttitle=\bfseries\color{OrangeAvertissement},
+  title={#1}, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  arc=4pt, boxrule=0.5pt,
+}
+
+% ══════════════════════════════════════════════════════════════════
+%  COMMANDES UTILITAIRES
+% ══════════════════════════════════════════════════════════════════
+\newcommand{\placeholder}[2][8cm]{%
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[dashed, color=GrisBordure, line width=0.6pt]
+        (0,0) rectangle (\linewidth,#1);
+      \node[color=GrisTexte, font=\itshape\small] at (0.5\linewidth, 0.5*#1)
+        {#2};
+    \end{tikzpicture}
+  \end{center}
+}
+
+\newcommand{\kpi}[3]{%
+  \begin{tcolorbox}[
+    enhanced, colback=GrisFond, colframe=GrisBordure,
+    arc=6pt, boxrule=0.5pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+    width=0.3\linewidth, nobeforeafter,
+  ]
+    \centering
+    {\small\color{GrisTexte}#1}\\[4pt]
+    {\Large\bfseries\color{BleuFonce}#2}\\[2pt]
+    {\footnotesize\color{GrisTexte}#3}
+  \end{tcolorbox}
+}
+
+% ══════════════════════════════════════════════════════════════════
+\begin{document}
+% ══════════════════════════════════════════════════════════════════
+
+% ──────────────────────────────────────────────────────────────────
+%  PAGE DE GARDE
+% ──────────────────────────────────────────────────────────────────
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  % Bandeau supérieur
+  \fill[BleuFonce] (current page.north west) rectangle
+    ([yshift=-5cm] current page.north east);
+  % Bandeau inférieur
+  \fill[BleuPrincipal] (current page.south west) rectangle
+    ([yshift=2.5cm] current page.south east);
+  % Ligne décorative
+  \fill[BleuClair!60] ([yshift=-5cm] current page.north west) rectangle
+    ([yshift=-5.3cm] current page.north east);
+\end{tikzpicture}
+
+\vspace*{0.8cm}
+\begin{center}
+  {\color{white}\large\bfseries École Polytechnique de Sousse}\\[4pt]
+
+\end{center}
+
+\vspace{2.5cm}
+\begin{center}
+  {\color{BleuFonce}\rule{0.8\linewidth}{1.5pt}}\\[0.6cm]
+  {\huge\bfseries\color{BleuFonce} Application de Facturation}\\[0.4cm]
+  {\LARGE\bfseries\color{BleuPrincipal} \& Analyse des Ventes}\\[0.6cm]
+  {\color{BleuFonce}\rule{0.8\linewidth}{1.5pt}}\\[0.4cm]
+  {\large\color{GrisTexte} Rapport Technique de Projet}\\[0.2cm]
+
+\end{center}
+
+\vspace{3cm}
+\begin{center}
+  \begin{tabular}{ll}
+    \textbf{\color{BleuFonce}Filière :} & 4\textsuperscript{ème} année Data Science --- Groupe 3 \\[6pt]
+    \textbf{\color{BleuFonce}Année :} & 2025--2026 \\[6pt]
+    \textbf{\color{BleuFonce}Équipe :} & \textit{Mohamed Aziz Karoui - Wassim Sioud} \\
+  \end{tabular}
+\end{center}
+
+\vfill
+\begin{center}
+  {\color{white}\small Rapport généré --- Avril 2026}
+\end{center}
+\end{titlepage}
+
+% ──────────────────────────────────────────────────────────────────
+%  TABLE DES MATIÈRES
+% ──────────────────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Introduction et Contexte du Projet}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Contexte général}
+
+Ce rapport présente le développement d'une application web complète de facturation
+conforme au modèle fiscal tunisien, réalisée dans le cadre du module de développement
+web avancé de la 4\textsuperscript{ème} année Data Science à l'École Polytechnique
+de Sousse.
+
+L'application cible les petites et moyennes entreprises (PME) tunisiennes soumises
+à la TVA, en leur offrant un outil de gestion de la facturation, d'analyse des ventes
+et de surveillance fiscale.
+
+\section{Objectifs du projet}
+
+\begin{successbox}[Objectifs principaux]
+\begin{itemize}[leftmargin=*, label=\textcolor{VertSucces}{\faCheckCircle}]
+  \item Développer une application Blazor Server respectant une architecture en
+        couches (UI / Services / Data).
+  \item Implémenter un CRUD complet sur les entités principales avec validation
+        via Data Annotations.
+  \item Proposer un tableau de bord analytique avec indicateurs fiscaux et
+        commerciaux.
+  \item Intégrer une marge de créativité apportant une valeur décisionnelle
+        supplémentaire.
+\end{itemize}
+\end{successbox}
+
+\section{Technologies utilisées}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{>{\bfseries\color{BleuFonce}}l X}
+\toprule
+Technologie & Rôle \\
+\midrule
+Blazor Server (.NET 10) & Interface utilisateur interactive côté serveur \\
+Entity Framework Core 9 & ORM Code-First, migrations, accès données \\
+PostgreSQL & Base de données relationnelle \\
+Npgsql & Provider EF Core pour PostgreSQL \\
+QuestPDF & Génération de factures PDF \\
+ApexCharts.Blazor & Graphiques interactifs dans le dashboard \\
+\bottomrule
+\end{tabularx}
+\caption{Stack technologique du projet}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Architecture Technique}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Architecture en couches}
+
+Le projet adopte une architecture en 3 couches strictement séparées, organisées
+en 4 projets .NET au sein d'une même solution Visual Studio.
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{GrisFond}{white}
+\begin{tabularx}{\linewidth}{>{\bfseries}l l X}
+\toprule
+\rowcolor{BleuFonce}
+\color{white}Couche & \color{white}Projet & \color{white}Responsabilité \\
+\midrule
+UI & \texttt{FacturationApp.Web} & Pages Blazor, composants, formulaires, graphiques \\
+Services & \texttt{FacturationApp.Services} & Logique métier, calculs TVA, validation, règles fiscales \\
+Data & \texttt{FacturationApp.Data} & DbContext, entités, migrations, repositories \\
+Shared & \texttt{FacturationApp.Shared} & DTOs, enums, Data Annotations \\
+\bottomrule
+\end{tabularx}
+\caption{Structure de la solution Visual Studio}
+\end{table}
+
+\section{Diagramme d'architecture}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{architecture_couches.png}
+    \caption{Architecture en couches de l'application}
+    \label{fig:architecture-couches}
+\end{figure}
+
+\section{Structure des dossiers}
+
+\begin{lstlisting}[language=bash, style=csharp,
+  caption={Arborescence de la solution},
+  morekeywords={FacturationApp}]
+FacturationApp/
+|-- FacturationApp.Web/          # Projet Blazor Server
+|   |-- Pages/                   # Composants Blazor (.razor)
+|   |-- Shared/                  # Layout, NavMenu
+|   `-- wwwroot/                 # CSS, JS statiques
+|-- FacturationApp.Services/     # Logique metier
+|   |-- Interfaces/              # IClientService, IFactureService...
+|   `-- Implementations/         # ClientService, FactureService...
+|-- FacturationApp.Data/         # EF Core
+|   |-- Entities/                # Models C#
+|   |-- Migrations/              # Migrations EF
+|   `-- AppDbContext.cs
+`-- FacturationApp.Shared/       # DTOs & Enums
+\end{lstlisting}
+
+\section{Injection de dépendances}
+
+L'injection de dépendances est configurée dans \texttt{Program.cs}.
+Tous les services sont enregistrés en \texttt{Scoped} et injectés dans
+les composants Blazor via \texttt{@inject}.
+
+\begin{lstlisting}[caption={Configuration Program.cs}]
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IClientService,    ClientService>();
+builder.Services.AddScoped<IProduitService,   ProduitService>();
+builder.Services.AddScoped<IFactureService,   FactureService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IInnovationService,InnovationService>();
+builder.Services.AddScoped<IParametreService, ParametreService>();
+\end{lstlisting}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Modèle de Données}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Diagramme de classes}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{diagramme_classes_facturation}
+    \caption{Diagramme de classes UML du système de facturation}
+\end{figure}
+
+\section{Description des entités}
+
+\subsection{Classe abstraite BaseEntity}
+
+Toutes les entités héritent de \texttt{BaseEntity}, qui centralise les
+propriétés communes d'audit :
+
+\begin{lstlisting}[caption={BaseEntity.cs}]
+public abstract class BaseEntity
+{
+    public int Id { get; set; }
+    public DateTime DateCreation { get; set; } = DateTime.UtcNow;
+    public DateTime? DateModification { get; set; }
+}
+\end{lstlisting}
+
+\subsection{Entité Client}
+
+Représente un client (personne physique ou morale) soumis à facturation.
+Contient les informations légales dont le matricule fiscal tunisien.
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{GrisFond}{white}
+\begin{tabularx}{\linewidth}{>{\ttfamily}l >{\ttfamily}l X}
+\toprule
+\rowcolor{BleuPrincipal}
+\color{white}Propriété & \color{white}Type & \color{white}Description \\
+\midrule
+Nom & string & Raison sociale ou nom complet (Required, Max 100) \\
+Adresse & string? & Adresse de facturation \\
+Telephone & string? & Numéro de téléphone (Phone) \\
+Email & string? & Adresse email (EmailAddress) \\
+MatriculeFiscal & string? & Identifiant fiscal tunisien \\
+EstActif & bool & Statut actif/inactif (soft delete) \\
+Factures & ICollection & Navigation vers les factures \\
+\bottomrule
+\end{tabularx}
+\caption{Propriétés de l'entité Client}
+\end{table}
+
+\subsection{Entité Produit}
+
+Représente un bien ou service vendable. Chaque produit porte son propre
+taux de TVA, conformément à la législation fiscale tunisienne.
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{GrisFond}{white}
+\begin{tabularx}{\linewidth}{>{\ttfamily}l >{\ttfamily}l X}
+\toprule
+\rowcolor{BleuPrincipal}
+\color{white}Propriété & \color{white}Type & \color{white}Description \\
+\midrule
+Reference & string & Code produit unique (index unique) \\
+Designation & string & Libellé du produit (Required, Max 200) \\
+PrixUnitaireHT & decimal & Prix hors taxes (numeric 18,3) \\
+TauxTVA & decimal & Taux TVA : 0, 7, 13 ou 19 \% \\
+Unite & string & Unité de mesure (pièce, kg, heure...) \\
+EstActif & bool & Disponibilité du produit \\
+\bottomrule
+\end{tabularx}
+\caption{Propriétés de l'entité Produit}
+\end{table}
+
+\subsection{Entité Facture}
+
+Document fiscal principal. Regroupe les lignes de facturation et calcule
+automatiquement les totaux HT, TVA, timbre et TTC.
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{GrisFond}{white}
+\begin{tabularx}{\linewidth}{>{\ttfamily}l >{\ttfamily}l X}
+\toprule
+\rowcolor{BleuPrincipal}
+\color{white}Propriété & \color{white}Type & \color{white}Description \\
+\midrule
+NumeroFacture & string & Numéro séquentiel auto-généré (FAC-2026-0001) \\
+DateFacture & DateTime & Date d'émission (Required) \\
+DateEcheance & DateTime? & Date limite de paiement \\
+ClientId & int & Clé étrangère vers Client \\
+MontantHT & decimal & Somme des lignes HT (calculé) \\
+MontantTVA & decimal & TVA totale calculée \\
+MontantTimbre & decimal & Timbre fiscal (paramétrable) \\
+MontantTTC & decimal & HT + TVA + Timbre \\
+Statut & Enum & Brouillon / Émise / Payée / Annulée \\
+Notes & string? & Observations libres \\
+\bottomrule
+\end{tabularx}
+\caption{Propriétés de l'entité Facture}
+\end{table}
+
+\subsection{Entité LigneFacture}
+
+Détail d'une ligne de facturation. Les valeurs de prix et de taux TVA
+sont capturées au moment de la vente pour assurer l'immuabilité historique.
+
+\subsection{Entité Parametre}
+
+Table de configuration globale (singleton) : nom de la société, montant
+du timbre fiscal, préfixe de numérotation et mentions légales.
+
+\section{Relations entre entités}
+
+\begin{itemize}
+  \item \textbf{Client $\rightarrow$ Factures} : relation 1-N (un client peut
+        avoir plusieurs factures).
+  \item \textbf{Facture $\rightarrow$ LignesFacture} : relation 1-N (une facture
+        contient plusieurs lignes).
+  \item \textbf{Produit $\rightarrow$ LignesFacture} : relation 1-N (un produit
+        peut apparaître dans plusieurs lignes).
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Fonctionnalités CRUD}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Gestion des Clients}
+
+La page \texttt{Pages/Clients/Index.razor} propose une liste paginée avec
+recherche dynamique et filtrage par statut. Le formulaire \texttt{Create/Edit}
+utilise \texttt{EditForm} avec \texttt{DataAnnotationsValidator} et affiche
+les messages d'erreur champ par champ.
+
+\placeholder[5cm]{Capture d'écran --- Page liste des clients avec filtres}
+
+\begin{infobox}[Fonctionnalités implémentées]
+\begin{itemize}[leftmargin=*, label=\textcolor{BleuPrincipal}{\faAngleRight}]
+  \item Recherche par nom, email, matricule fiscal
+  \item Filtrage par statut actif/inactif
+  \item Formulaire de création/modification avec validation inline
+  \item Désactivation (soft delete) préservant l'historique des factures
+  \item Vue détail avec CA total et liste des factures du client
+  \item Export de la liste en CSV
+\end{itemize}
+\end{infobox}
+
+\section{Gestion des Produits}
+
+\placeholder[5cm]{Capture d'écran --- Page gestion des produits}
+
+La page produits permet la gestion complète du catalogue avec un sélecteur
+de taux de TVA (0\%, 7\%, 13\%, 19\%) et le calcul en temps réel du prix TTC
+à la saisie du prix HT.
+
+\section{Gestion des Factures}
+
+La gestion des factures est la fonctionnalité centrale de l'application.
+Elle intègre :
+
+\placeholder[6cm]{Capture d'écran --- Formulaire de création de facture avec lignes dynamiques}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Création dynamique des lignes} : ajout/suppression de lignes
+        avec recalcul instantané des totaux.
+  \item \textbf{Calcul automatique} : HT $\rightarrow$ TVA par taux $\rightarrow$
+        Timbre $\rightarrow$ TTC en temps réel.
+  \item \textbf{Numérotation automatique} : format configurable (FAC-AAAA-NNNN).
+  \item \textbf{Workflow de statut} : Brouillon $\rightarrow$ Émise $\rightarrow$
+        Payée / Annulée.
+  \item \textbf{Export PDF} : génération d'une facture imprimable via QuestPDF.
+  \item \textbf{Duplication} : copie d'une facture existante.
+\end{itemize}
+
+\section{Recherche et Filtrage Dynamique (LINQ)}
+
+Le service de requêtage utilise \texttt{IQueryable} pour composer les filtres
+de façon dynamique sans charger inutilement toutes les données :
+
+\begin{lstlisting}[caption={Filtrage dynamique dans FactureService}]
+public async Task<List<Facture>> GetFilteredAsync(FactureFilter filter)
+{
+    var query = _context.Factures
+        .Include(f => f.Client)
+        .Include(f => f.Lignes).ThenInclude(l => l.Produit)
+        .AsQueryable();
+
+    if (!string.IsNullOrEmpty(filter.NomClient))
+        query = query.Where(f =>
+            f.Client.Nom.Contains(filter.NomClient));
+
+    if (filter.DateDebut.HasValue)
+        query = query.Where(f =>
+            f.DateFacture >= filter.DateDebut.Value);
+
+    if (filter.Statut != null)
+        query = query.Where(f => f.Statut == filter.Statut);
+
+    return await query
+        .OrderByDescending(f => f.DateFacture)
+        .Skip(filter.Page * filter.PageSize)
+        .Take(filter.PageSize)
+        .ToListAsync();
+}
+\end{lstlisting}
+
+\section{Validation via Data Annotations}
+
+Tous les formulaires utilisent \texttt{EditForm} + \texttt{DataAnnotationsValidator}
+avec affichage des erreurs via \texttt{ValidationMessage} :
+
+\begin{lstlisting}[language=HTML, style=csharp,
+  morekeywords={EditForm,DataAnnotationsValidator,ValidationMessage,InputText},
+  caption={Extrait du formulaire Client.razor}]
+<EditForm Model="@clientDto" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label>Nom *</label>
+        <InputText @bind-Value="clientDto.Nom" class="form-control"/>
+        <ValidationMessage For="@(() => clientDto.Nom)" />
+    </div>
+    <div class="mb-3">
+        <label>Email</label>
+        <InputText @bind-Value="clientDto.Email" class="form-control"/>
+        <ValidationMessage For="@(() => clientDto.Email)" />
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+</EditForm>
+\end{lstlisting}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Tableau de Bord Analytique}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Vue d'ensemble}
+
+Le tableau de bord est organisé en deux sous-tableaux conformément aux
+exigences du sujet : un tableau de bord \textbf{fiscal} et un tableau de
+bord \textbf{ventes}. Les graphiques sont rendus via ApexCharts.Blazor.
+
+\placeholder[6cm]{Capture d'écran --- Vue générale du tableau de bord}
+
+\section{Tableau de Bord Fiscal}
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{BleuClair}{white}
+\begin{tabularx}{\linewidth}{>{\bfseries}l X}
+\toprule
+\rowcolor{BleuPrincipal}
+\color{white}Indicateur & \color{white}Description \\
+\midrule
+TVA totale collectée & Somme TVA sur factures émises/payées (période sélectionnable) \\
+TVA par taux & Répartition par taux (0\% / 7\% / 13\% / 19\%) \\
+Montant total timbre & Cumul du timbre fiscal sur la période \\
+Nombre de factures & Count par statut (Émises / Payées / Brouillons / Annulées) \\
+Évolution TVA/mois & Courbe mensuelle de la TVA collectée \\
+\bottomrule
+\end{tabularx}
+\caption{Indicateurs du tableau de bord fiscal}
+\end{table}
+
+\placeholder[5cm]{Capture d'écran --- Tableau de bord fiscal avec graphique TVA par taux}
+
+\section{Tableau de Bord Ventes}
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{BleuClair}{white}
+\begin{tabularx}{\linewidth}{>{\bfseries}l X}
+\toprule
+\rowcolor{BleuPrincipal}
+\color{white}Indicateur & \color{white}Description \\
+\midrule
+CA total HT / TTC & Chiffre d'affaires global sur la période \\
+CA par période & Évolution mensuelle/trimestrielle \\
+Top 10 clients & Classement par CA HT (barres horizontales) \\
+Top 10 produits & Classement produits les plus vendus \\
+Répartition statuts & Factures payées / impayées / annulées (donut) \\
+Taux de recouvrement & \% CA effectivement encaissé vs CA émis \\
+Factures en retard & Factures dépassant leur date d'échéance \\
+Panier moyen & CA TTC / nombre de factures payées \\
+\bottomrule
+\end{tabularx}
+\caption{Indicateurs du tableau de bord ventes}
+\end{table}
+
+\placeholder[5cm]{Capture d'écran --- Tableau de bord ventes avec graphique CA par client}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Marge de Créativité}
+% ══════════════════════════════════════════════════════════════════
+
+\begin{creativebox}[Extension analytique --- 2 points]
+L'extension proposée est un module d'intelligence analytique fiscale et
+commerciale, intégré dans \texttt{InnovationService.cs} et affiché dans
+\texttt{Dashboard.razor}. Elle est 100\% implémentée en C\# pur, sans
+dépendance externe supplémentaire.
+\end{creativebox}
+
+\section{Module A --- Détection d'Anomalies Fiscales}
+
+Ce module analyse automatiquement les factures pour détecter des incohérences
+ou risques fiscaux à partir de règles métier codées en C\# avec LINQ.
+
+\subsection{Règles de détection implémentées}
+
+\begin{enumerate}[leftmargin=*, label=\textbf{Règle \arabic*.}]
+  \item \textbf{TVA mal calculée} : vérification que MontantTVA $=$ MontantHT
+        $\times$ TauxTVA avec une tolérance de 0,01 TND.
+  \item \textbf{TTC incohérent} : re-calcul systématique HT + TVA + Timbre
+        et alerte si l'écart dépasse 0,01 TND.
+  \item \textbf{Trous de numérotation} : détection de sauts dans la séquence
+        des numéros de facture (risque de fraude fiscale).
+  \item \textbf{Factures dupliquées} : groupement par (ClientId, MontantTTC,
+        DateFacture.Date) et alerte si Count > 1.
+  \item \textbf{Client B2B sans matricule} : alerte pour les factures
+        supérieures à 1\,000 TND sans matricule fiscal.
+\end{enumerate}
+
+\begin{lstlisting}[caption={Extrait --- Détection TVA incorrecte dans InnovationService}]
+public async Task<List<Anomalie>> DetectAnomaliesAsync()
+{
+    var anomalies = new List<Anomalie>();
+    var factures = await _context.Factures
+        .Include(f => f.Lignes).Include(f => f.Client)
+        .Where(f => f.Statut != StatutFacture.Annulee)
+        .ToListAsync();
+
+    foreach (var facture in factures)
+    {
+        // Regle 1 : TVA mal calculee
+        var tvAAttendue = facture.Lignes
+            .Sum(l => l.MontantHT * (l.TauxTVA / 100));
+        if (Math.Abs(tvAAttendue - facture.MontantTVA) > 0.01m)
+            anomalies.Add(new Anomalie {
+                NumeroFacture = facture.NumeroFacture,
+                Type = "TVA incorrecte",
+                Gravite = GraviteAnomalie.Critique
+            });
+    }
+    return anomalies;
+}
+\end{lstlisting}
+
+\placeholder[5cm]{Capture d'écran --- Table des anomalies avec indicateurs de gravité}
+
+\section{Module B --- Prévision de Chiffre d'Affaires}
+
+Un algorithme de prévision basé sur la \textbf{moyenne mobile pondérée}
+sur les 6 derniers mois calcule une estimation du CA du mois suivant.
+Les mois récents ont un poids plus élevé que les mois anciens.
+
+\subsection{Formule mathématique}
+
+\[
+\hat{CA}_{n+1} = \frac{\sum_{i=1}^{6} w_i \cdot CA_{n-6+i}}{\sum_{i=1}^{6} w_i}
+\quad \text{avec} \quad w = [1, 2, 3, 4, 5, 6]
+\]
+
+\begin{lstlisting}[caption={Calcul de la prévision dans InnovationService}]
+public async Task<PrevisionResult> GetPrevisionCAAsync()
+{
+    var caParMois = await _context.Factures
+        .Where(f => f.Statut == StatutFacture.Payee
+                 && f.DateFacture >= DateTime.UtcNow.AddMonths(-6))
+        .GroupBy(f => new { f.DateFacture.Year, f.DateFacture.Month })
+        .Select(g => new {
+            Mois = g.Key,
+            CA   = g.Sum(f => f.MontantHT)
+        })
+        .OrderBy(x => x.Mois.Year).ThenBy(x => x.Mois.Month)
+        .ToListAsync();
+
+    decimal[] poids = { 1, 2, 3, 4, 5, 6 };
+    decimal sommePoids = poids.Sum(); // 21
+    decimal prevision = caParMois
+        .Select((item, i) => item.CA * poids[i])
+        .Sum() / sommePoids;
+
+    return new PrevisionResult {
+        CAPrevu       = prevision,
+        CAMoisActuel  = caParMois.LastOrDefault()?.CA ?? 0,
+        Tendance      = CalculerTendance(caParMois)
+    };
+}
+\end{lstlisting}
+
+\placeholder[5cm]{Capture d'écran --- Graphique prévision CA avec indicateur de tendance}
+
+\section{Justification de la créativité}
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{CoralClair}{white}
+\begin{tabularx}{\linewidth}{>{\bfseries}l X}
+\toprule
+\rowcolor{CoralCreatif}
+\color{white}Critère & \color{white}Justification \\
+\midrule
+Socle respecté & Toutes les fonctionnalités CRUD et analytiques de base sont
+                  intégralement implémentées avant l'extension. \\
+Cohérence domaine & La détection d'anomalies et la prévision CA sont des besoins
+                    réels d'une PME tunisienne utilisant un logiciel de facturation. \\
+Valeur ajoutée & Ces modules transforment l'application en outil d'aide à la
+                 décision (réduction du risque fiscal, planification financière). \\
+Maîtrise technique & 100\% C\# / LINQ / EF Core --- aucune dépendance externe
+                     supplémentaire. \\
+\bottomrule
+\end{tabularx}
+\caption{Justification de la marge de créativité}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Export PDF des Factures}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Génération avec QuestPDF}
+
+L'export PDF des factures est réalisé via la bibliothèque QuestPDF,
+intégrée dans \texttt{FacturePdfService.cs}. Un endpoint de téléchargement
+est exposé dans \texttt{Program.cs} et déclenché par un bouton dans
+la page Factures.
+
+La facture PDF générée inclut :
+
+\begin{itemize}
+  \item En-tête avec logo et informations de la société
+  \item Informations du client et numéro de facture
+  \item Tableau des lignes (désignation, quantité, PU HT, taux TVA, montant HT)
+  \item Récapitulatif fiscal : total HT, TVA par taux, timbre, \textbf{total TTC}
+  \item Mentions légales en pied de page
+  \item QR code optionnel pour vérification
+\end{itemize}
+
+\placeholder[7cm]{Capture d'écran --- Aperçu d'une facture PDF générée}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Difficultés Rencontrées et Solutions}
+% ══════════════════════════════════════════════════════════════════
+
+\begin{table}[H]
+\centering
+\rowcolors{2}{GrisFond}{white}
+\begin{tabularx}{\linewidth}{>{\bfseries}l X X}
+\toprule
+\rowcolor{BleuFonce}
+\color{white}Difficulté & \color{white}Cause & \color{white}Solution adoptée \\
+\midrule
+Avertissement EF Relational &
+  Incompatibilité mineure de version entre EF Core et Npgsql &
+  Non bloquant, ignoré en développement. Prévu à corriger en alignant les versions \\
+Calcul TVA multi-taux &
+  Une facture peut contenir des produits avec des taux différents &
+  Calcul ligne par ligne dans LigneFacture, agrégation dans FactureService \\
+Numérotation séquentielle &
+  Risque de doublons en accès concurrent &
+  Transaction EF Core + index unique sur NumeroFacture \\
+Filtrage LINQ dynamique &
+  Composition de filtres sans N+1 queries &
+  Chaînage IQueryable avec Include avant ToListAsync \\
+\bottomrule
+\end{tabularx}
+\caption{Difficultés rencontrées et solutions}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════
+\chapter{Conclusion}
+% ══════════════════════════════════════════════════════════════════
+
+\section{Bilan du projet}
+
+Ce projet a permis de développer une application web complète de facturation
+conforme au modèle fiscal tunisien, en respectant l'ensemble des exigences
+techniques imposées :
+
+\begin{successbox}[Exigences techniques satisfaites]
+\begin{itemize}[leftmargin=*, label=\textcolor{VertSucces}{\faCheckCircle}]
+  \item[$\checkmark$] Blazor Web Application (Server-side)
+  \item[$\checkmark$] Architecture propre en 3 couches (UI / Services / Data)
+  \item[$\checkmark$] Entity Framework Core Code-First + Migrations PostgreSQL
+  \item[$\checkmark$] CRUD complet sur toutes les entités principales
+  \item[$\checkmark$] Recherche et filtrage dynamique (LINQ / IQueryable)
+  \item[$\checkmark$] Tableau de bord avec indicateurs fiscaux et commerciaux
+  \item[$\checkmark$] Validation via Data Annotations + EditForm Blazor
+  \item[$\checkmark$] Asynchronisme (async/await sur toutes les opérations DB)
+  \item[$\checkmark$] Marge de créativité (anomalies fiscales + prévision CA)
+\end{itemize}
+\end{successbox}
+
+\section{Perspectives d'amélioration}
+
+\begin{itemize}
+  \item Authentification et gestion des rôles (Admin / Comptable / Commercial)
+  \item Envoi automatique des factures par email
+  \item Application mobile compagnon via MAUI Blazor Hybrid
+  \item Connexion à une API de taux de change pour la facturation en devises
+  \item Module de rappels automatiques pour les factures en retard
+\end{itemize}
+
+
+
+% ──────────────────────────────────────────────────────────────────
+%  FIN DU DOCUMENT
+% ──────────────────────────────────────────────────────────────────
+\end{document}
