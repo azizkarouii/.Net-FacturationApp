@@ -1,6 +1,6 @@
 <Solution>
-  <Project Path="FacturationApp.Data/FacturationApp.Data.csproj" />
-  <Project Path="FacturationApp.Services/FacturationApp.Services.csproj" />
-  <Project Path="FacturationApp.Shared/FacturationApp.Shared.csproj" />
-  <Project Path="FacturationApp.Web/FacturationApp.Web.csproj" />
+  <Project Path="Data/FacturationApp.Data.csproj" />
+  <Project Path="Services/FacturationApp.Services.csproj" />
+  <Project Path="Shared/FacturationApp.Shared.csproj" />
+  <Project Path="Web/FacturationApp.Web.csproj" />
 </Solution>

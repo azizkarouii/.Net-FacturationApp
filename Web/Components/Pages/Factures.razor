@@ -1,0 +1,341 @@
+@page "/factures"
+@using System.ComponentModel.DataAnnotations
+@inject IFactureService FactureService
+@inject IClientService ClientService
+@inject IProduitService ProduitService
+@inject IParametreService ParametreService
+@inject IFacturePdfService FacturePdfService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Factures</PageTitle>
+
+<div class="container-fluid py-4 app-page">
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+            <h1 class="page-title display-6 fw-bold mb-1">Factures</h1>
+            <p class="page-subtitle mb-0">Création, suivi et export PDF des factures.</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+                <label class="form-label mb-1">Recherche</label>
+                <input class="form-control" @bind="SearchTerm" @bind:event="oninput" placeholder="Numéro, client, notes..." />
+            </div>
+            <div>
+                <label class="form-label mb-1">Statut</label>
+                <InputSelect class="form-select" @bind-Value="SelectedStatut">
+                    <option value="">Tous</option>
+                    @foreach (var statut in Enum.GetValues<StatutFacture>())
+                    {
+                        <option value="@statut">@statut</option>
+                    }
+                </InputSelect>
+            </div>
+            <div>
+                <label class="form-label mb-1">Début</label>
+                <InputDate class="form-control" @bind-Value="DateDebutFilter" />
+            </div>
+            <div>
+                <label class="form-label mb-1">Fin</label>
+                <InputDate class="form-control" @bind-Value="DateFinFilter" />
+            </div>
+            <button class="btn btn-outline-primary mt-4" @onclick="LoadAsync">Filtrer</button>
+            <button class="btn btn-primary mt-4" @onclick="NewFacture">Nouvelle facture</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="alert alert-info">@Message</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-12 col-xxl-5">
+            <div class="card surface-card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3 pb-0">
+                    <h2 class="h5 mb-0">@(Form.Id == 0 ? "Créer une facture" : "Modifier la facture")</h2>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="Form" OnValidSubmit="SaveAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Client</label>
+                                <InputSelect class="form-select" @bind-Value="Form.ClientId">
+                                    <option value="0">Sélectionner</option>
+                                    @foreach (var client in ActiveClients)
+                                    {
+                                        <option value="@client.Id">@client.Nom</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => Form.ClientId" />
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Date facture</label>
+                                <InputDate class="form-control" @bind-Value="Form.DateFacture" />
+                                <ValidationMessage For="() => Form.DateFacture" />
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <label class="form-label">Date échéance</label>
+                                <InputDate class="form-control" @bind-Value="Form.DateEcheance" />
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Notes</label>
+                                <InputTextArea class="form-control" rows="2" @bind-Value="Form.Notes" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2 mb-2">
+                            <h3 class="h6 mb-0">Lignes</h3>
+                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddLine">Ajouter une ligne</button>
+                        </div>
+
+                        @if (Form.Lignes.Count == 0)
+                        {
+                            <div class="alert alert-warning">Ajoutez au moins une ligne.</div>
+                        }
+
+                        @for (var index = 0; index < Form.Lignes.Count; index++)
+                        {
+                            var line = Form.Lignes[index];
+                            <div class="border rounded-3 p-3 mb-3">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label">Produit</label>
+                                        <InputSelect class="form-select" @bind-Value="line.ProduitId">
+                                            <option value="0">Sélectionner</option>
+                                            @foreach (var produit in ActiveProduits)
+                                            {
+                                                <option value="@produit.Id">@produit.Reference - @produit.Designation</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label">Quantité</label>
+                                        <InputNumber class="form-control" @bind-Value="line.Quantite" />
+                                    </div>
+                                    <div class="col-12 col-md-3 d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => RemoveLine(index)">Supprimer</button>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(line.Error))
+                                {
+                                    <div class="text-danger small mt-2">@line.Error</div>
+                                }
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-success">Enregistrer</button>
+                            <button type="button" class="btn btn-outline-secondary" @onclick="NewFacture">Réinitialiser</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xxl-7">
+            <div class="card surface-card shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Liste des factures</h2>
+                    <span class="badge text-bg-light">@InvoiceItems.Count factures</span>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table align-middle table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th class="text-end">TTC</th>
+                                <th>Statut</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (InvoiceItems.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-body-secondary py-4">Aucune facture trouvée.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var facture in InvoiceItems)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@facture.NumeroFacture</td>
+                                        <td>@facture.Client.Nom</td>
+                                        <td>@facture.DateFacture.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end">@facture.MontantTTC.ToString("N3")</td>
+                                        <td>@facture.Statut</td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a class="btn btn-outline-secondary" href="@($"/api/factures/{facture.Id}/pdf")" target="_blank">PDF</a>
+                                                <button class="btn btn-outline-success" @onclick="() => SetStatus(facture.Id, StatutFacture.Payee)">Payée</button>
+                                                <button class="btn btn-outline-danger" @onclick="() => SetStatus(facture.Id, StatutFacture.Annulee)">Annuler</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Facture> InvoiceItems { get; set; } = new();
+    private List<Client> ActiveClients { get; set; } = new();
+    private List<Produit> ActiveProduits { get; set; } = new();
+    private FactureFormModel Form { get; set; } = new();
+    private string? SearchTerm { get; set; }
+    private StatutFacture? SelectedStatut { get; set; }
+    private DateTime? DateDebutFilter { get; set; }
+    private DateTime? DateFinFilter { get; set; }
+    private string? Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLookupsAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        ActiveClients = await ClientService.GetAllAsync(includeInactive: false);
+        ActiveProduits = await ProduitService.GetAllAsync(includeInactive: false);
+    }
+
+    private async Task LoadAsync()
+    {
+        InvoiceItems = await FactureService.GetAllAsync(SearchTerm, SelectedStatut, DateDebutFilter, DateFinFilter);
+    }
+
+    private void NewFacture()
+    {
+        Form = new FactureFormModel
+        {
+            DateFacture = DateTime.UtcNow.Date,
+            DateEcheance = DateTime.UtcNow.Date.AddDays(30)
+        };
+        Form.Lignes.Add(new FactureLineFormModel());
+        Message = null;
+    }
+
+    private void AddLine()
+    {
+        Form.Lignes.Add(new FactureLineFormModel());
+    }
+
+    private void RemoveLine(int index)
+    {
+        if (index >= 0 && index < Form.Lignes.Count)
+        {
+            Form.Lignes.RemoveAt(index);
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        ClearLineErrors();
+
+        if (Form.Lignes.Count == 0)
+        {
+            Message = "Ajoutez au moins une ligne à la facture.";
+            return;
+        }
+
+        var invalidLines = false;
+        foreach (var line in Form.Lignes)
+        {
+            if (line.ProduitId <= 0)
+            {
+                line.Error = "Sélectionnez un produit.";
+                invalidLines = true;
+            }
+
+            if (line.Quantite <= 0)
+            {
+                line.Error = string.IsNullOrWhiteSpace(line.Error) ? "La quantité doit être supérieure à zéro." : line.Error;
+                invalidLines = true;
+            }
+        }
+
+        if (invalidLines)
+        {
+            Message = "Corrigez les lignes avant d'enregistrer.";
+            return;
+        }
+
+        var request = new FactureCreateRequest
+        {
+            ClientId = Form.ClientId,
+            DateFacture = Form.DateFacture,
+            DateEcheance = Form.DateEcheance,
+            Notes = Form.Notes,
+            Lignes = Form.Lignes.Select(line => new FactureLineRequest
+            {
+                ProduitId = line.ProduitId,
+                Quantite = line.Quantite
+            }).ToList()
+        };
+
+        await FactureService.CreateAsync(request);
+        Message = "Facture créée avec succès.";
+        await LoadAsync();
+        NewFacture();
+    }
+
+    private async Task SetStatus(int factureId, StatutFacture statut)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Changer le statut de la facture ?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await FactureService.UpdateStatusAsync(factureId, statut);
+        await LoadAsync();
+    }
+
+    private void ClearLineErrors()
+    {
+        foreach (var line in Form.Lignes)
+        {
+            line.Error = null;
+        }
+    }
+
+    private sealed class FactureFormModel
+    {
+        public int Id { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Veuillez sélectionner un client.")]
+        public int ClientId { get; set; }
+
+        [Required]
+        public DateTime DateFacture { get; set; }
+
+        public DateTime? DateEcheance { get; set; }
+
+        public string? Notes { get; set; }
+
+        public List<FactureLineFormModel> Lignes { get; set; } = new();
+    }
+
+    private sealed class FactureLineFormModel
+    {
+        public int ProduitId { get; set; }
+
+        [Range(typeof(decimal), "0.001", "79228162514264337593543950335")]
+        public decimal Quantite { get; set; } = 1m;
+
+        public string? Error { get; set; }
+    }
+}
